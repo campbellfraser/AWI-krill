@@ -1,0 +1,7 @@
+{
+    "installOptions": {
+        "installFromRepository": true,
+        "libraryPath": "C:/Users/fraze/OneDrive/Old/R/win-library/4.1",
+        "installDependencies": true
+    }
+}
