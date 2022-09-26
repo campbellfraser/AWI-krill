@@ -39,6 +39,8 @@ krillCocktail = ggplot(seasonalLipids,aes(x=Year,y=Lipids,fill=Month)) +
 krillCocktail
  # From this bargraph, we would expect to see more successful spawning in Austral Spring of: 2011, 2014, 2015, 2016, and 2020, since the availability of lipids appears to increase
 
+# New line in the code! Let's commit it.
+
 # So what statistical tests can I do to this data? I have lipid content (continuous), and months (categorical). I can compare the means of each Jul/Aug, to see if they differ significantly - that would be a one-way ANOVA.
 
 # 1-WAY ANOVA testing if there is a significant difference between Jul/Aug each year ####
