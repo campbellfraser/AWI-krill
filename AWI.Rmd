@@ -1,0 +1,145 @@
+---
+title: "**Placement Logbook: Alfred Wegener Institute**"
+author: Fraser Campbell
+date: 26/09/2022
+output: html_document
+---
+
+# First two weeks
+This is the first entry into the weekly logbook I need to complete as part of this placement module. You might notice that the title says "First two weeks" - this is because I forgot I had to do this logbook weekly. But I've started now, and that's the important thing!
+
+These first two weeks have been exciting, lonely, and exhausting. This internship is in Germany, in a small city called Bremerhaven. The biggest challenge so far has certainly been the culture shock. My coworkers speak excellent English, since I believe it's a requirement when working in science, but around the city it's much more rare. As such, I've found it hard to meet new people, and more often than not find myself alone, reflecting on the day with my own thoughts. In addition, my coworkers all live in Bremen, a much larger city nearby, and commute in, so it's very difficult to arrange any kind of social activities after work. Also, it rains rather a lot here.
+
+Despite this veritable myriad of difficulties, I'm having a good time. Being in a brand new place is nerve wracking, but exciting, and I'm keeping busy with exercise, visiting new places, and, of course, my work. Speaking of...
+
+## What have I done so far?
+My position is as an intern in Prof. Dr. Bettina Meyer's working group, "Ecophysiology of Pelagic Key Species". Her primary interest is Antarctic krill, *Euphausia superba*, and their role in the ecosystem of the Southern Ocean. The project which I'm working on aims to gain a mechanistic understanding of Antarctic krill overwintering methods (how they survive being covered by sea ice), specifically looking at how lipid reserves affect this.
+
+I've been working with a very large data set, which Bettina is excited about - apparently we've never had data at this resolution before! Here's a little taste:
+```{r Krill data table,echo=FALSE}
+source("prerequisites.R")
+krill4disp = dplyr::filter(krill,Size>0)
+kable(head(krill4disp[1:9]),"simple")
+```
+
+Fun! This data is collected from fisheries, who harvest krill as a source of omega-3. In fact, that's what the "Lipids" column contains - the amount of omega-3 (in mg) from that krill catch. This is the column I've been focused on. As Bettina explained to me, before we start any real analysis, it's a good idea to understand what this data is showing us; which years have the most lipid content? Do we have data for each month? What's the proportion of lipid content between months?
+
+To this end, my tasks for the past few weeks have been to visualise this data in an accessible and intuitive way. To start, Bettina suggested that I create pie charts for each year. Easy, right? Well, not exactly. Unfortunately, the graph package that I like, ggplot, does not have a function to make pie charts. To make one, you have to create a stacked bar chart, then change the coordinates to modify how the graph is plotted. As a result, doing anything to the final product (such as adding labels or reordering the slices) is way more complicated. Moreover, since I needed a pie chart for every year, this process had to be automated with a loop (lest I wanted to sit in this office typing the same code 10 times). Fortunately, I really enjoy this kind of stuff! Here's the whistle-stop tour of my process.
+
+To start, I tested making a pie chart with just one year, before throwing my code into a big slow loop. After a day of trial and error (the most difficult part, incredibly, being changing the order of the slices), I had a successful pie chart!
+```{r Pie chart with one year, echo=FALSE}
+krill2013 = dplyr::filter(krill,grepl(2013,date.YMD)) #Filters the whole data set to only use one year; this one is 2013
+for (j in krill2013$date.YMD){ #Extracts the month from each date, so we can easily differentiate by month
+  krill2013$specMonth=(stri_sub(krill2013$date.YMD,6,7))
+}
+monthlyLipids = data.frame() #New data frame to put the monthly lipid data into
+
+#This section sums up each month's total lipids and puts them into a separate data frame
+#This means that we can more clearly visualise the separation between months
+krill_pal = hue_pal()(12) # Sets the colour palette
+for (u in monthNums){
+  tempMonth = dplyr::filter(krill2013,grepl(u,specMonth))
+  monthSum = sum(tempMonth$Lipids,na.rm=TRUE)
+  monthMean = monthSum/length(tempMonth$specMonth)
+  if (((is.nan(monthMean)==TRUE|(monthMean==0)==TRUE))==TRUE){
+    monthlyLipids = rbind(monthlyLipids,c(0,u,2013))
+    krill_pal[as.numeric(u)] = "#454545"
+  } else {
+    monthlyLipids = rbind(monthlyLipids,c(monthMean,u,2013))}
+}
+
+# Housekeeping; we like tidy tables!
+colnames(monthlyLipids) = c("lipidMean","Month","Year")
+monthlyLipids$lipidMean = as.numeric(monthlyLipids$lipidMean)
+monthlyLipids$Month = as.factor(monthlyLipids$Month)
+monthlyLipids$Year = as.character(monthlyLipids$Year)
+
+# Create the plot
+pieTitle = expression(paste("Mean Monthly Lipid Content of ", italic("Euphausia superba"), ", 2013"))
+krillPie = ggplot(monthlyLipids,aes(x=Year,y=lipidMean,fill=Month)) +
+  geom_bar(stat="identity",width=1,color="white") +
+  coord_polar("y",start=0,direction=-1,clip="off") +
+  theme_void() +
+  scale_fill_manual(labels=c(allMonths),values=krill_pal) +
+  ggtitle(pieTitle)
+krillPie
+```
+
+Ideal! Next came making the loop and adding labels, which took way less time.
+
+```{r The loop!, eval=FALSE}
+for (i in years){
+  krill_pal = hue_pal()(12)
+  remove(krillYEAR,krillPie,tempMonth,labelPos)
+  krillYEAR = dplyr::filter(krill,grepl(as.character(i),date.YMD)) # Filters the whole data set to just use one year at a time
+  for (j in krillYEAR$date.YMD){ # Extacts the month from each date, so we can more easily differentiate between them
+    krillYEAR$specMonth=(stri_sub(krillYEAR$date.YMD,6,7))
+    monthlyLipids = data.frame()
+    badMonth = c()
+    n=1
+    
+    #This section sums up each month's total lipids and puts them into a separate data frame
+    #This means that we can more clearly visualise the separation between months
+    for (u in monthNums){
+      tempMonth = dplyr::filter(krillYEAR,grepl(u,specMonth))
+      monthSum = sum(tempMonth$Lipids,na.rm=TRUE)
+      monthMean = monthSum/length(tempMonth$specMonth)
+      if (((is.nan(monthMean)==TRUE|(monthMean==0)==TRUE))==TRUE){ # Surely there's an easier way to do this? Oh well...
+        monthlyLipids = rbind(monthlyLipids,c(0,u,i))
+        krill_pal[as.numeric(u)] = "#454545"
+        badMonth[n] = as.numeric(u)
+        n=n+1
+      } else {
+        monthlyLipids = rbind(monthlyLipids,c(monthMean,u,i))}
+    }
+    
+    # Housekeeping; We like tidy tables!
+    colnames(monthlyLipids) = c("lipidMean","Month","Year")
+    monthlyLipids$lipidMean = as.numeric(monthlyLipids$lipidMean)
+    monthlyLipids$Month = as.factor(monthlyLipids$Month)
+    monthlyLipids$Year = as.character(monthlyLipids$Year)
+    
+    # Calculate the position of the labels
+    labelPos = monthlyLipids %>%
+      mutate(csum = rev(cumsum(rev(lipidMean))),
+             pos = lipidMean/2 + lead(csum, 1),
+             pos = if_else(is.na(pos), lipidMean/2, pos,))
+    labelPos$pos[badMonth] = NA
+    
+    # Make the plot
+    krillPie = ggplot(monthlyLipids,aes(x=Year,y=lipidMean,fill=Month)) +
+      geom_bar(stat="identity",
+               width=1,
+               color="white") +
+      coord_polar("y",start=0,direction=-1,clip="off") +
+      theme_void() +
+      scale_fill_manual(labels=c(allMonths),values=krill_pal) +
+      geom_label_repel(labelPos, mapping=aes(y=pos, label=paste0(round(lipidMean,digits=2),"mg")),
+                       size = 6.5, nudge_x = 0.7, show.legend = FALSE, na.rm = TRUE) +
+      ggtitle(i,subtitle=paste(as.character(round((sum(krillYEAR$Lipids,na.rm=TRUE)/1000),digits=2)), "g total")) + theme(plot.title = element_text(size = 22, face = "bold"), plot.subtitle = element_text(size = 19.5), legend.key.height=unit(0.5,"cm"),legend.title=element_text(size=18,face="bold"),legend.text=element_text(size=17))
+    assign(paste0("krill",i),krillPie)
+  }
+}
+```
+
+```{r Load the actual year objects, echo = FALSE}
+load("krillOBJECTS.RData")
+```
+
+With each pie chart neatly stored into its own variable, they can be plotted all together as a lovely big graph.
+```{r Pie festival}
+pieFestival = plot_grid(krill2011,krill2012,krill2013,krill2014,krill2015,krill2016,krill2017,krill2018,krill2019,krill2020,krill2021)
+title = ggdraw() +
+  draw_label("Monthly Mean Omega-3 Content of Krill Stomachs (2011-2022)",
+    fontface = "bold",
+    size = 35,
+    x = 0,
+    hjust = 0) +
+  theme(plot.margin = margin(0,0,0,7))
+
+plot_grid(
+  title,pieFestival,
+  ncol = 1,
+  rel_heights = c(0.1,1))
+```
+
