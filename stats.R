@@ -1,15 +1,5 @@
 # Krill stats
-require(pacman)
-pacman::p_load(car,caret)
-krill = read.xlsx2("Large Lipid data.xlsx",sheetIndex=1)
-krill = rename(krill, Lipids=GasChromatography_FattyAcidProfile_TotalPUFA_Omega3)
-krill = rename(krill, Weight=RawKrill_Weight_g)
-krill = rename(krill, Size=RawKrill_Size_mm)
-krill[c("Date","Lipids","Size","Weight")] = sapply(krill[c("Date","Lipids","Size","Weight")],as.numeric)
-krill$date.YMD = as.character(janitor::excel_numeric_to_date(krill$Date))
-years = c('2011','2012','2013','2014','2015','2016','2017','2018','2019','2020','2021')
-allMonthsLong = c("January","February","March","April","May","June","July","August","September","October","November","December")
-
+source("prerequisites.R")
 inspectaMonth = readline(prompt="Months: ") %>%
   strsplit("[[:space:]]") %>%
   unlist()
@@ -46,8 +36,8 @@ krillCocktail
 
 # 1-WAY ANOVA testing if there is a significant difference between Jul/Aug each year ####
 # Assumptions: the observations are independent, the data are normally distributed (shapiro test), and the data has a homogeneity of variance (levene's test)
-shapiro.test(seasonalLipids$Lipids) # p-val < 0.05, non-normal
-leveneTest(Lipids~Year,seasonalLipids) # p-val <<<< 0.05, non-homogeneous
-seasonalLipids$logLipids = log10(seasonalLipids$Lipids)
-shapiro.test(seasonalLipids$logLipids) # p-val > 0.05, normal
-leveneTest(logLipids~Year,seasonalLipids) # p-val <<< 0.05, non-homogeneous
+#shapiro.test(seasonalLipids$Lipids) # p-val < 0.05, non-normal
+#leveneTest(Lipids~Year,seasonalLipids) # p-val <<<< 0.05, non-homogeneous
+#seasonalLipids$logLipids = log10(seasonalLipids$Lipids)
+#shapiro.test(seasonalLipids$logLipids) # p-val > 0.05, normal
+#leveneTest(logLipids~Year,seasonalLipids) # p-val <<< 0.05, non-homogeneous

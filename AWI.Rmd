@@ -26,8 +26,10 @@ Fun! This data is collected from fisheries, who harvest krill as a source of ome
 
 To this end, my tasks for the past few weeks have been to visualise this data in an accessible and intuitive way. To start, Bettina suggested that I create pie charts for each year. Easy, right? Well, not exactly. Unfortunately, the graph package that I like, ggplot, does not have a function to make pie charts. To make one, you have to create a stacked bar chart, then change the coordinates to modify how the graph is plotted. As a result, doing anything to the final product (such as adding labels or reordering the slices) is way more complicated. Moreover, since I needed a pie chart for every year, this process had to be automated with a loop (lest I wanted to sit in this office typing the same code 10 times). Fortunately, I really enjoy this kind of stuff! Here's the whistle-stop tour of my process.
 
+### Krill lipid pie charts
 To start, I tested making a pie chart with just one year, before throwing my code into a big slow loop. After a day of trial and error (the most difficult part, incredibly, being changing the order of the slices), I had a successful pie chart!
-```{r Pie chart with one year, echo=FALSE}
+
+```{r Pie chart with one year, echo=FALSE, fig.align='center'}
 krill2013 = dplyr::filter(krill,grepl(2013,date.YMD)) #Filters the whole data set to only use one year; this one is 2013
 for (j in krill2013$date.YMD){ #Extracts the month from each date, so we can easily differentiate by month
   krill2013$specMonth=(stri_sub(krill2013$date.YMD,6,7))
@@ -127,12 +129,13 @@ load("krillOBJECTS.RData")
 ```
 
 With each pie chart neatly stored into its own variable, they can be plotted all together as a lovely big graph.
-```{r Pie festival}
+
+```{r Krill pie, layout="1-page", fig.height = 12, fig.width = 20, echo=FALSE}
 pieFestival = plot_grid(krill2011,krill2012,krill2013,krill2014,krill2015,krill2016,krill2017,krill2018,krill2019,krill2020,krill2021)
 title = ggdraw() +
   draw_label("Monthly Mean Omega-3 Content of Krill Stomachs (2011-2022)",
     fontface = "bold",
-    size = 35,
+    size = 30,
     x = 0,
     hjust = 0) +
   theme(plot.margin = margin(0,0,0,7))
@@ -142,4 +145,17 @@ plot_grid(
   ncol = 1,
   rel_heights = c(0.1,1))
 ```
+
+And that concluded my first week! I'm incredibly happy that I was able to work out how to create this graph, since I was a bit rusty with my R. I think the last time I really sunk my teeth into this kind of project was in my MBIO227 coursework, with the data we collected in Sweden. The biggest challenge was understanding how R handles data frames - it tends to do so in the most backwards and un-intuitive way possible, so reigning it in and making it do what I actually wanted was frustrating. However, as always, this was a rewarding process; I finished my first week understanding a lot more about data handling packages, base R, and, of course, Antarctic krill.
+
+### Comparing specific months
+Now that we had an idea of how the lipid levels vary year-by-year, the natural next step was to investigate in more detail. Krill spawn in Austral spring (August/September-ish), and their success depends on their lipid stores, which they use as a source of energy.
+
+::: {.floatting}
+```{r out.width="30%",out.extra='style="float:right; padding:10px"',echo = FALSE}
+knitr::include_graphics("tiny krill recruitment graph.png")
+```
+
+Bettina was interested in discovering whether or not the changes in lipid levels between the Austral spring of each year had any correlation with years of high and low krill biomass. I don't yet have access to the yearly krill recruitment data (although I was provided with this tiny graph (right)). In the meantime, I plotted a bar graph to visualise how the mean lipid content of June-September changes with each year. What I expected to see was the bar heights roughly matching the pattern in the krill recruitment graph.
+:::
 
