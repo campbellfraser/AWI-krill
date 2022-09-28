@@ -1,0 +1,25 @@
+---
+title: "Shiny practice"
+author: "Fraser Campbell"
+date: "`r Sys.Date()`"
+output: html_document
+runtime: shiny
+---
+```{r}
+allMonthsLong = c("January","February","March","April","May","June","July","August","September","October","November","December")
+lipidComparison = function(krill){
+  library(shiny)
+  vars = names(krill)
+  
+  shinyApp(
+    ui = fluidPage(
+      fluidRow(style = "padding-bottom: 20px;"),
+        column(4, selectInput('xcol', 'Months', allMonthsLong))
+    )
+  )
+  server = function(input) {
+    print(input)
+  }
+}
+```
+
