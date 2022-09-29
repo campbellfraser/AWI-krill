@@ -7,7 +7,7 @@
 # species, site and year
 
 plot.mos <- 1 # 1 to plot only January, 2 to plot January and February
-#upper.y <- 1.25 # blank space above 1 for legend at top of plots
+upper.y <- 0.5 # blank space above 1 for legend at top of plots
 y.lim <- c(0,1)
 
 if(nareas == 1){

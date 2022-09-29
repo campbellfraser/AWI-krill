@@ -1,16 +1,6 @@
 # Krill stats
-
-require(pacman)
-pacman::p_load(car,caret)
-krill = read.xlsx2("Large Lipid data.xlsx",sheetIndex=1)
-krill = rename(krill, Lipids=GasChromatography_FattyAcidProfile_TotalPUFA_Omega3)
-krill = rename(krill, Weight=RawKrill_Weight_g)
-krill = rename(krill, Size=RawKrill_Size_mm)
-krill[c("Date","Lipids","Size","Weight")] = sapply(krill[c("Date","Lipids","Size","Weight")],as.numeric)
-krill$date.YMD = as.character(janitor::excel_numeric_to_date(krill$Date))
-years = c('2011','2012','2013','2014','2015','2016','2017','2018','2019','2020','2021')
-allMonthsLong = c("January","February","March","April","May","June","July","August","September","October","November","December")
-
+setwd("~/placement/alfred-wegener/Bettina Meyer/data")
+source("prerequisites.R")
 inspectaMonth = readline(prompt="Months: ") %>%
   strsplit("[[:space:]]") %>%
   unlist()
@@ -23,14 +13,15 @@ for (i in years){
     MONTHsum = sum(MONTHkrill$Lipids,na.rm=TRUE)
     MONTHmean = MONTHsum/length(MONTHkrill$date.YMD)
     MONTHsd = sd(MONTHkrill$Lipids,na.rm=TRUE)
-    seasonalLipids = rbind(seasonalLipids,c(i,MONTHmean,j,MONTHsd))
+    seasonalLipids = rbind(seasonalLipids,c(i,MONTHmean,j,MONTHsd,MONTHsum))
   }
 }
 
-colnames(seasonalLipids) = c("Year","Lipids","Month","SD")
+colnames(seasonalLipids) = c("Year","Lipids","Month","SD","Total")
 seasonalLipids$Lipids = as.numeric(seasonalLipids$Lipids)
 seasonalLipids$Month = as.factor(seasonalLipids$Month)
 seasonalLipids$SD = as.numeric(seasonalLipids$SD)
+seasonalLipids$Total = as.numeric(seasonalLipids$Total)
 seasonalLipids[seasonalLipids==0] = NA
 
 krillCocktail = ggplot(seasonalLipids,aes(x=Year,y=Lipids,fill=Month)) +
@@ -41,14 +32,27 @@ krillCocktail = ggplot(seasonalLipids,aes(x=Year,y=Lipids,fill=Month)) +
   labs(y="Mean Omega-3 Content (mg)")
 krillCocktail
 
+krillCocktailSum = ggplot(seasonalLipids,aes(x=Year,y=Total,fill=Month)) +
+  geom_bar(stat="identity",position=position_dodge(0.9)) +
+  scale_fill_discrete(labels=allMonthsLong[as.numeric(inspectaMonth)]) +
+  ggtitle("Total omega-3 Content of Krill Stomachs") +
+  labs(y="Total Omega-3 Content (mg)")
+krillCocktailSum
+
  # From this bar graph, we would expect to see more successful spawning in Austral Spring of: 2011, 2014, 2015, 2016, and 2020, since the availability of lipids appears to increase
 
 # So what statistical tests can I do to this data? I have lipid content (continuous), and months (categorical). I can compare the means of each Jul/Aug, to see if they differ significantly - that would be a one-way ANOVA.
 
-# 1-WAY ANOVA testing if there is a significant difference between Jul/Aug each year ####
+# 1-WAY ANOVA testing if there is a significant difference between Aug each year ####
 # Assumptions: the observations are independent, the data are normally distributed (shapiro test), and the data has a homogeneity of variance (levene's test)
 shapiro.test(seasonalLipids$Lipids) # p-val < 0.05, non-normal
 leveneTest(Lipids~Year,seasonalLipids) # p-val <<<< 0.05, non-homogeneous
-seasonalLipids$logLipids = log10(seasonalLipids$Lipids)
+seasonalLipids$logLipids = log10(seasonalLipids$Lipids) # Transform the data
 shapiro.test(seasonalLipids$logLipids) # p-val > 0.05, normal
 leveneTest(logLipids~Year,seasonalLipids) # p-val <<< 0.05, non-homogeneous
+
+# The variables still don't meet all the assumptions. That's unfortunate, but not the end of the world. I can do a non-parametric ANOVA! I think that's a Kruskal-Wallis test
+
+# Kruskal-Wallis test ####
+kruskal.test(Lipids~Year,seasonalLipids) # p-val > 0.05. No significant difference between mean lipid content of years
+kruskal.test(Total~Year, seasonalLipids)

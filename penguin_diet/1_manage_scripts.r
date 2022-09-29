@@ -16,6 +16,5 @@ path.s <- paste(path.nm)
 path.dat <- paste(path.nm)
 path.out <- paste(path.nm,'propRec_csvs/',sep='')
 
-                              
 source(paste(path.s,'6_amlr_peng.r',sep='')) # AERD penguins
 source(paste(path.s,'7_plot_propRec.r',sep='')) # plot proportional recruitments

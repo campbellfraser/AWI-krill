@@ -1,0 +1,21 @@
+---
+title: "Shiny practice"
+author: "Fraser Campbell"
+date: "`r Sys.Date()`"
+output: html_document
+runtime: shiny
+---
+```{r}
+library(shiny,dplyr)
+ui = fluidPage(
+  textInput("caption","Caption","Data summary"),
+  verbatimTextOutput("value")
+)
+server = function(input,output){
+  newInput = strsplit(as.character(input),"[[:space:]]")
+  newInput = unlist(input)
+  output$value = renderText(newInput)
+}
+shinyApp(ui, server)
+```
+

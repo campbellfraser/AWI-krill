@@ -1,6 +1,6 @@
 p.diets <- read.csv(paste(path.dat,'AERD_KRILL_LF_DATA.csv',sep=''))
-sqkm.areas <- c(43865,18151,24479,38524)
-if (nareas ==1 & nlegs == 1) names.area <- names.leg <- "combi"
+sqkm.areas <- c(43865,18151,24479,38524) # what area is this defining?
+if (nareas ==1 & nlegs == 1) names.area <- names.leg <- "combi" #what does combi mean?
 if (nareas == 4)
   names(sqkm.areas) <- names.area <- c("EI","JI","SA","WA")
 sqkm.all <- sum(sqkm.areas)
