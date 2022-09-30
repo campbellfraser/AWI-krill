@@ -1,6 +1,6 @@
 # Krill prerequisites
 library(pacman)
-pacman::p_load(ggplot2,dplyr,forcats,xlsx,cowplot,janitor,lubridate,colorspace,stringi,scales,ggrepel,car,caret,knitr,distill,leaflet,prettydoc)
+pacman::p_load(ggplot2,dplyr,forcats,xlsx,cowplot,janitor,lubridate,colorspace,stringi,scales,ggrepel,car,caret,knitr,distill,leaflet,leaflet.providers,htmltools)
 krill = read.xlsx2("Large Lipid data.xlsx",sheetIndex=1) #Load the data
 # Rename a bunch of variables... because they're annoying to type
 krill = rename(krill, Lipids=GasChromatography_FattyAcidProfile_TotalPUFA_Omega3)

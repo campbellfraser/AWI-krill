@@ -1,7 +1,6 @@
 ---
 title: "**Placement Logbook: Alfred Wegener Institute**"
 author: Fraser Campbell
-date: 26/09/2022
 output:
   html_document:
     toc: true
@@ -10,13 +9,27 @@ output:
     toc_collapsed: false
     number_sections: true
 ---
+```{r Load the prerequisites, echo = FALSE}
+source("prerequisites.R")
+```
 
-# First two weeks
+# 26/09/2022: First two weeks
 
-This is the first entry into the weekly logbook I need to complete as part of this placement module. You might notice that the title says "First two weeks" - this is because I forgot I had to do this logbook weekly. But I've started now, and that's the important thing!
+This is the first entry into the weekly logbook I need to complete as part of this placement module. You might notice that the title says "Week One and Week Two" - this is because I forgot I had to do this logbook weekly. But I've started now, and that's the important thing!
 
-These first two weeks have been exciting, lonely, and exhausting. This internship is in Germany, in a small city called Bremerhaven. The biggest challenge so far has certainly been the culture shock. My coworkers speak excellent English, since I believe it's a requirement when working in science, but around the city it's much more rare. As such, I've found it hard to meet new people, and more often than not find myself alone, reflecting on the day with my own thoughts. In addition, my coworkers all live in Bremen, a much larger city nearby, and commute in, so it's very difficult to arrange any kind of social activities after work. Also, it rains rather a lot here.
-
+These first two weeks have been exciting, lonely, and exhausting. This internship is at the "Alfred Wegener Institute for Polar and Marine Research" (AWI) in Germany, in a small city called Bremerhaven. The biggest challenge so far has certainly been the culture shock. My coworkers speak excellent English, since I believe it's a requirement when working in science, but around the city it's much more rare. As such, I've found it hard to meet new people, and more often than not find myself alone, reflecting on the day with my own thoughts. In addition, my coworkers all live in Bremen, a much larger city nearby, and commute in, so it's very difficult to arrange any kind of social activities after work. Also, it rains rather a lot here.
+<br>
+```{r Map of Bremerhaven, fig.width=8.5, fig.height=3, echo = FALSE}
+AWI = leaflet() %>% 
+  setView(lng=8.580558417739011, lat=53.53330956163785, zoom=12) %>% 
+  addProviderTiles(providers$CartoDB.Positron) %>% 
+  addMarkers(8.580558417739011, 53.53330956163785, label = "Alfred Wegener Insitute",
+             labelOptions = labelOptions(style = list("font-weight" = "bold",
+                                                      "font-size" = "16px",
+                                                      "box-shadow" = "3px 3px rgba(0,0,0,0.25)")))
+AWI
+```
+<br>
 Despite this veritable myriad of difficulties, I'm having a good time. Being in a brand new place is nerve wracking, but exciting, and I'm keeping busy with exercise, visiting new places, and, of course, my work. Speaking of...
 
 ## What have I done so far?
@@ -26,7 +39,6 @@ My position is as an intern in Prof. Dr. Bettina Meyer's working group, "Ecophys
 I've been working with a very large data set, which Bettina is excited about - apparently we've never had data at this resolution before! Here's a little taste:
 <br>
 ```{r Krill data table,echo=FALSE}
-source("prerequisites.R")
 krill4disp = dplyr::filter(krill,Size>0)
 krill4disp = subset(krill4disp,select=-c(RawKrill_Evaporation_Moisture_perc))
 kable(head(krill4disp[1:8]),"simple")
@@ -228,3 +240,34 @@ krillCocktail
 ```
 <br>
 Yeah, there looks like a much more clear relationship between high lipid years and high krill biomass. Hopefully when we receive the krill biomass/recruitment data, that hypothesis can actually be tested statistically!
+
+# 30/09/2022: Rmarkdown, Git, and insignificant statistics
+This little entry is a bit of a meta one, since I spent a lot of this week creating what you're reading now. I finished with all of the data visualisation (which Bettina was pleased with) and I had no access to the krill biomass data (which I need to move forward with any meaningful analysis). So, I decided *not* to spend the whole week refreshing twitter, and instead learn a slightly new language; Rmarkdown.
+
+## Rmarkdown
+Rmarkdown is essentially a format of document that can make aesthetically pleasing (and reproducible!) documents to summarise your data, and allows the user to explain their methods alongside their analysis. I've been interested in learning it for a little while, and making this logbook was a great opportunity to make something meaningful at the same time! It's been genuinely quite a lot of fun to explore what I can do with Rmarkdown. Frustrating at times too, of course (it's still R, after all), but well worth the time spent in it! 
+
+One thing I haven't yet been able to achieve is interactive graphs. I wanted to make the "Mean Monthly Lipids" graph interactive, so that people reading this document could input different months and see how the lipid content changed. This is absolutely possible, and uses a different framework called "shiny". Shiny is quite similar to HTML and Javascript, both of which I've struggled to learn in the past. In the coming weeks I'll keep plugging away at shiny, and try to wrap my head around a new syntax and workflow.
+
+## Git
+Speaking of old languages and coding I've tried in the past, I decided to try Git/Github again too! Funnily enough, I was introduced to git around the same time as HTML/Javascript (during *another* work placement, in Year 12, at <a href="https://en.wikipedia.org/wiki/Dennis_Publishing">Dennis Publishing</a>).
+
+This time, I took it slowly, relearnt the basic tools, and successfully set up <a href="https://github.com/campbellfraser/AWI-krill">a repository</a> to upload all of my work during this internship. I think it's a bit easier this time around because I can consistently add to it, so I'm repeatedly practicing the process.
+
+## Insignificant statistics
+And to conclude this week, I did some very basic and incredibly boring statistics! I wanted to take a look at the monthly mean lipid data from an analytical standpoint; specifically, I wanted to find out if there was any kind of significant difference between the means of each August. To test that, I need to do a 1-Way ANOVA. Now, running that test is easy - meeting the assumptions is the tricky part.
+
+The data has to be both normal and homogeneous, which we test for with a Shapiro-Wilk test and Levene's Test respectively.
+
+```{r Testing for normality and homogeneous, warning = FALSE}
+shapiro.test(seasonalLipids$Lipids)
+leveneTest(Lipids~Year,seasonalLipids)
+```
+
+From the p-values, we know that our August lipid data is normal (p-val > 0.05), but Levene's test doesn't return a value for homogeneity. I'm not sure why - I think it might be to do with there only being one month to compare each year, but I don't know why it would be upset with that. Since I can't verify whether this data is homogeneous, I couldn't do a regular ANOVA, so I turned to the non-parametric alternative, Kruskal-Wallis.
+
+```{r Kruskal-Wallis test}
+kruskal.test(Lipids~Year,seasonalLipids)
+```
+
+Yep, no significant difference between any of those means (p-val > 0.05). Of course, this test is less powerful, so these results aren't 100% reliable. Oh well! That's all for this week. It's a really nice day outside, so I'm going to read in the park.
