@@ -54,7 +54,7 @@ for (i in years){
     for (u in monthNums){
       tempMonth = dplyr::filter(krillYEAR,grepl(u,specMonth))
       monthSum = sum(tempMonth$Lipids,na.rm=TRUE)
-      monthMean = monthSum/length(tempMonth$specMonth)
+      monthMean = monthSum/length(tempMonth$specMonth[!is.na(tempMonth$specMonth)])
       if (((is.nan(monthMean)==TRUE|(monthMean==0)==TRUE))==TRUE){ # Surely there's an easier way to do this? Oh well...
         monthlyLipids = rbind(monthlyLipids,c(0,u,i))
         krill_pal[as.numeric(u)] = "#454545"
