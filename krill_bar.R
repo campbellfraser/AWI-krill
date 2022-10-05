@@ -9,7 +9,7 @@ for (i in years){
   for (j in inspectaMonth){
     MONTHkrill = dplyr::filter(krillYEAR,grepl(paste0("-",j,"-"),date.YMD))
     MONTHsum = sum(MONTHkrill$Lipids,na.rm=TRUE)
-    MONTHmean = MONTHsum/length(MONTHkrill$date.YMD)
+    MONTHmean = MONTHsum/length(MONTHkrill$date.YMD[!is.na(MONTHkrill$date.YMD)])
     MONTHsd = sd(MONTHkrill$Lipids,na.rm=TRUE)
     seasonalLipids = rbind(seasonalLipids,c(i,MONTHmean,j,MONTHsd,MONTHsum))
   }
