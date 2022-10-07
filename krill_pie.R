@@ -44,7 +44,9 @@ for (i in years){
   print(i)
   krill_pal = hue_pal()(12)
   remove(krillYEAR,krillPie,tempMonth,labelPos)
-  krillYEAR = dplyr::filter(krill,grepl(as.character(i),date.YMD))
+  krillYEAR = krill %>%
+    select(Lipids,date.YMD) %>%
+    dplyr::filter(grepl(i,date.YMD))
   for (j in krillYEAR$date.YMD){
     krillYEAR$specMonth=(stri_sub(krillYEAR$date.YMD,6,7))
     monthlyLipids = data.frame()

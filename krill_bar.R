@@ -11,21 +11,24 @@ for (i in years){
     MONTHsum = sum(MONTHkrill$Lipids,na.rm=TRUE)
     MONTHmean = MONTHsum/length(MONTHkrill$date.YMD[!is.na(MONTHkrill$date.YMD)])
     MONTHsd = sd(MONTHkrill$Lipids,na.rm=TRUE)
-    seasonalLipids = rbind(seasonalLipids,c(i,MONTHmean,j,MONTHsd,MONTHsum))
+    replicates = length(MONTHkrill$Lipids)
+    seasonalLipids = rbind(seasonalLipids,c(i,MONTHmean,j,MONTHsd,MONTHsum,replicates))
   }
 }
 
-colnames(seasonalLipids) = c("Year","Lipids","Month","SD","Total")
+colnames(seasonalLipids) = c("Year","Lipids","Month","SD","Total","Replicates")
 seasonalLipids$Lipids = as.numeric(seasonalLipids$Lipids)
 seasonalLipids$Month = as.factor(seasonalLipids$Month)
 seasonalLipids$SD = as.numeric(seasonalLipids$SD)
 seasonalLipids$Total = as.numeric(seasonalLipids$Total)
+seasonalLipids$Replicates = as.numeric(seasonalLipids$Replicates)
 seasonalLipids[seasonalLipids==0] = NA
 
 krillCocktail = ggplot(seasonalLipids,aes(x=Year,y=Lipids,fill=Month)) +
   geom_bar(stat="identity",position=position_dodge(0.9)) +
   scale_fill_discrete(labels=allMonthsLong[as.numeric(inspectaMonth)]) +
   geom_errorbar(aes(ymin=Lipids,ymax=Lipids+SD),position=position_dodge(0.9),width=0.2) +
+  geom_text(aes(label=Replicates),vjust=1.5,position=position_dodge(0.9)) +
   ggtitle("Mean omega-3 Content of Krill Stomachs") +
   labs(y="Mean Omega-3 Content (mg)")
 krillCocktail

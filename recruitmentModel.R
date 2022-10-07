@@ -17,11 +17,16 @@ krillINFO.months = tibble(
 )
 
 for (i in years){
-  lipidYear = dplyr::filter(krill,grepl(i,date.YMD))
+  lipidYear = krill %>%
+    select(Lipids,date.YMD) %>%
+    dplyr::filter(grepl(i,date.YMD))
   for (j in monthNums){
     MONTHkrill = dplyr::filter(lipidYear,grepl(paste0("-",j,"-"),date.YMD))
     MONTHmean = sum(MONTHkrill$Lipids,na.rm=TRUE)/length(MONTHkrill$date.YMD[!is.na(MONTHkrill$date.YMD)])
     MONTHsd = sd(MONTHkrill$Lipids,na.rm=TRUE)
+    if (is.nan(MONTHmean)==TRUE|MONTHmean==0){
+      MONTHmean=NA
+    }
     krillINFO.months = add_row(krillINFO.months,
                                yr=i, mo=allMonthsLong[as.numeric(j)], meanLipids=MONTHmean, sdLipids=MONTHsd)
   }
@@ -42,13 +47,31 @@ for (i in years){
 recruitment30m.staggered = recruitmentINFO.years[-c(1),] %>%
   select(recruitment.30mm) %>% 
   add_row(recruitment.30mm=NaN)
+recruitment44m.staggered = recruitmentINFO.years[-c(1),] %>%
+  select(recruitment.44mm) %>% 
+  add_row(recruitment.44mm=NaN)
 
-july30 = dplyr::filter(krillINFO.months,grepl("July",mo)) %>% add_column(recruitment30m.staggered)
-august30 = dplyr::filter(krillINFO.months,grepl("August",mo)) %>% add_column(recruitment30m.staggered)
-september30 = dplyr::filter(krillINFO.months,grepl("September",mo)) %>% add_column(recruitment30m.staggered)
-julyMod30 = lm(recruitment.30mm~meanLipids,july30)
-augustMod30 = lm(recruitment.30mm~meanLipids,august30)
-septemberMod30 = lm(recruitment.30mm~meanLipids,september30)
+march = dplyr::filter(krillINFO.months,grepl("July",mo)) %>% 
+  add_column(recruitment30m.staggered,recruitment44m.staggered)
+july = dplyr::filter(krillINFO.months,grepl("July",mo)) %>% 
+  add_column(recruitment30m.staggered,recruitment44m.staggered)
+august = dplyr::filter(krillINFO.months,grepl("August",mo)) %>% 
+  add_column(recruitment30m.staggered,recruitment44m.staggered)
+september = dplyr::filter(krillINFO.months,grepl("September",mo)) %>% 
+  add_column(recruitment30m.staggered,recruitment44m.staggered)
+
+marchMod30 = lm(recruitment.30mm~meanLipids,march)
+julyMod30 = lm(recruitment.30mm~meanLipids,july)
+augustMod30 = lm(recruitment.30mm~meanLipids,august)
+septemberMod30 = lm(recruitment.30mm~meanLipids,september)
+
+ggMar30 = ggplot(march, aes(x=meanLipids,y=recruitment.30mm)) +
+  geom_point() +
+  geom_smooth(method="lm",color="#00BA38") +
+  ggtitle("Recruitment (30mm) ~ previous March") +
+  labs(subtitle=paste("P-val: ",round(lmp(julyMod30),digits=4)),
+       x="Mean omega-3 content (g)",y="Recruitment") +
+  xlim(0,25)
 
 ggJul30 = ggplot(july30, aes(x=meanLipids,y=recruitment.30mm)) +
   geom_point() +
@@ -75,10 +98,6 @@ ggSep30 = ggplot(september30, aes(x=meanLipids,y=recruitment.30mm)) +
   xlim(0,33)
 
 # 44mm
-recruitment44m.staggered = recruitmentINFO.years[-c(1),] %>%
-  select(recruitment.44mm) %>% 
-  add_row(recruitment.44mm=NaN)
-
 july44 = dplyr::filter(krillINFO.months,grepl("July",mo)) %>% add_column(recruitment44m.staggered)
 august44 = dplyr::filter(krillINFO.months,grepl("August",mo)) %>% add_column(recruitment44m.staggered)
 september44 = dplyr::filter(krillINFO.months,grepl("September",mo)) %>% add_column(recruitment44m.staggered)
@@ -113,6 +132,7 @@ ggSep44 = ggplot(september44, aes(x=meanLipids,y=recruitment.44mm)) +
 plot_grid(ncol=3,nrow=2,ggJul30,ggAug30,ggSep30,ggJul44,ggAug44,ggSep44)
 
 # Plot of recruitment vs average lipid content of july, august, and september ####
+#write.xlsx(krillINFO.months,"krillINFO_months.xlsx")
 JAGlips = read.xlsx("krillINFO_months.xlsx",sheetIndex=2)
 JAGlips$sepLips = as.numeric(JAGlips$sepLips)
 JAGlips$recruitment.44mm = recruitment44m.staggered$recruitment.44mm
